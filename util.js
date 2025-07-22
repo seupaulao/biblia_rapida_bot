@@ -1,4 +1,5 @@
 const qtdversos = require('./qtdversos');
+const biblia = require('./blv');
 
 exports.get_refs = () => {
     return [
@@ -62,5 +63,9 @@ exports.get_capitulos = (i) => {
 
 exports.get_qtd_versos = (posicaoLivro, capitulo) => {
     return qtdversos.get_qtd_versos(posicaoLivro, capitulo);
+}
+
+exports.get_texto_chave = (chave) => {
+        return biblia.get_texto(chave);
 }
 

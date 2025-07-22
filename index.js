@@ -1,6 +1,6 @@
+const { message } = require("telegraf/filters");
 const util = require("./util");
 const { Telegraf, Markup, session } = require("telegraf")
-//const { message } = require("telegraf/filters")
 
 require('dotenv').config();
 
@@ -44,8 +44,43 @@ for (let i=0; i < util.get_livros().length; i++)
 {
    bot.action(util.get_ref(i), (ctx) => {
       ctx.reply(`O livro selecionado foi ${util.get_livro(i)}`);
+      ctx.session = {step: "selectcaps"};
       ctx.session.livro=util.get_ref(i);
-      
+      ctx.session.indice=i;
+      ctx.reply("Digite o capitulo que deseja ler: ");      
    })
 }
+
+bot.on(message("text"), (ctx)=>{
+   const passo = ctx.session.step;
+   if (passo === "selectcaps") {
+      const livro = ctx.session.indice;
+
+      const entrada = parseInt(ctx.message.text);
+      if (entrada > util.get_capitulos(livro)) {
+         ctx.session = null;
+          ctx.reply("Abortando. Você digitou um capitulo invalido.");
+      }
+      ctx.session.capitulo = entrada;
+      ctx.session.step = "selectversiculo";
+      ctx.reply("Digite o numero do versiculo que deseja ler: ");
+   }
+   if (passo === "selectversiculo") {
+      const indice = ctx.session.indice;
+      const capitulo = ctx.session.capitulo;
+      const entrada = parseInt(ctx.message.text);
+      if (entrada > util.get_qtd_versos(indice, capitulo)) {
+         ctx.session = null;
+          ctx.reply("Abortando. Você digitou um versiculo invalido.");
+      }
+      const livro = ctx.session.livro;
+      const chave = livro + "_" + capitulo + "_" + entrada;
+      const nomelivro = util.get_livro(indice);
+      const texto = util.get_texto_chave(chave);
+      ctx.session = null;
+      ctx.reply(`${nomelivro} ${capitulo}:${entrada} - ${texto}`); 
+   }
+  return;
+});
+
 bot.launch();
