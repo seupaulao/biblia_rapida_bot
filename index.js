@@ -44,7 +44,7 @@ for (let i=0; i < util.get_livros().length; i++)
 {
    bot.action(util.get_ref(i), (ctx) => {
       ctx.reply(`O livro selecionado foi ${util.get_livro(i)}`);
-      ctx.session = {step: "selectcaps"};
+      ctx.session = {step: 'selectcaps'};
       ctx.session.livro=util.get_ref(i);
       ctx.session.indice=i;
       ctx.reply("Digite o capitulo que deseja ler: ");      
@@ -52,35 +52,41 @@ for (let i=0; i < util.get_livros().length; i++)
 }
 
 bot.on(message("text"), (ctx)=>{
-   const passo = ctx.session.step;
-   if (passo === "selectcaps") {
+   const step = ctx.session?.step;
+   if (step === 'selectcaps') {
       const livro = ctx.session.indice;
 
       const entrada = parseInt(ctx.message.text);
       if (entrada > util.get_capitulos(livro)) {
          ctx.session = null;
-          ctx.reply("Abortando. Você digitou um capitulo invalido.");
+         return ctx.reply("Abortando. Você digitou um capitulo invalido.");
       }
       ctx.session.capitulo = entrada;
-      ctx.session.step = "selectversiculo";
-      ctx.reply("Digite o numero do versiculo que deseja ler: ");
+      ctx.session.step = 'selectversiculo';
+      return ctx.reply("Digite o numero do versiculo que deseja ler: ");
    }
-   if (passo === "selectversiculo") {
-      const indice = ctx.session.indice;
-      const capitulo = ctx.session.capitulo;
-      const entrada = parseInt(ctx.message.text);
-      if (entrada > util.get_qtd_versos(indice, capitulo)) {
+   if (step === 'selectversiculo') {
+      const {indice , livro , capitulo} = ctx.session; 
+      const versiculo = parseInt(ctx.message.text);
+      if (versiculo > util.get_qtd_versos(indice, capitulo)) {
          ctx.session = null;
-          ctx.reply("Abortando. Você digitou um versiculo invalido.");
+         return ctx.reply("Abortando. Você digitou um versiculo invalido.");
       }
-      const livro = ctx.session.livro;
-      const chave = livro + "_" + capitulo + "_" + entrada;
+      const chave = livro + "_" + capitulo + "_" + versiculo;
+      console.log("1");
       const nomelivro = util.get_livro(indice);
+      ctx.session.chave = chave;
+      console.log("2");
+      const valor = nomelivro+ " " + capitulo +":" + versiculo;
+      console.log("3");
+
+      ctx.reply(valor);
       const texto = util.get_texto_chave(chave);
+      ctx.reply(`${texto}`);
       ctx.session = null;
-      ctx.reply(`${nomelivro} ${capitulo}:${entrada} - ${texto}`); 
+
    }
-  return;
+
 });
 
 bot.launch();
