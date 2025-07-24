@@ -52,6 +52,8 @@ bot.hears('Ajuda', (ctx)=>comandos(ctx, 'Os comandos são:'))
 bot.hears('ajuda', (ctx)=>comandos(ctx, 'Os comandos são:'))
 bot.hears('Me ajude', (ctx)=>comandos(ctx, 'Os comandos são:'))
 bot.hears('me ajude', (ctx)=>comandos(ctx, 'Os comandos são:'))
+bot.hears('zerar tudo', (ctx)=>zerar(ctx))
+bot.hears('zerar', (ctx)=>zerar(ctx))
 
 bot.command('/zerar', (ctx) => zerar(ctx));
 bot.command('/ajuda', (ctx)=>comandos(ctx, 'Os comandos são:'));
@@ -118,11 +120,13 @@ bot.on(message("text"), async (ctx)=>{
       const capitulo = parseInt( ctx.message.text );
       const { indice } = ctx.session;
       const ref = util.get_ref(indice);
-      let saida = await get_texto_capitulo(indice, capitulo, ref);
+      let saida = get_texto_capitulo(indice, capitulo, ref);
       
       for (const msg of saida) {
           await ctx.reply(`${msg}`);
       }
+
+      ctx.session = null;
    }
    if (step === 'selectporreferencia') {
       const chave = ctx.message.text;
