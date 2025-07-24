@@ -14,6 +14,17 @@ exports.get_refs = () => {
     
 }
 
+exports.montar_referencia_biblia = (chave) => {
+    let vetor = chave.split('_');
+    const livro = vetor[0];
+    const capitulo = vetor[1];
+    const versiculo = vetor[2];
+    const indice = this.get_refs().indexOf(livro);
+    const nomelivro = this.get_livro(indice);
+    const valor = nomelivro+ " " + capitulo +":" + versiculo;
+    return valor;
+}
+
 exports.get_livros = () => { 
     return [
     "GÊNESIS","ÊXODO","LEVÍTICO","NÚMEROS","DEUTERONÔMIO",

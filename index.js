@@ -8,7 +8,7 @@ const bot = new Telegraf(process.env.BOT_TOKEN)
 
 bot.use(session());
 
-function listarLivros() {
+function listarBotoesLivros() {
    let vetor = [];
    const c = util.get_livros();
    for (let i = 0; i < c.length; i++) {
@@ -32,28 +32,60 @@ function comandos(ctx, mensagem) {
    ]));
 }
 
+function zerar(ctx) {
+   ctx.session = null;
+   ctx.reply("Tudo zerado!!")
+}
+
+function get_texto_capitulo(indice, capitulo, ref) {
+   let saida = [];
+   const qtd = util.get_qtd_versos(indice, capitulo);
+   for (let i = 1; i <= qtd; i++) {
+      const chave = ref + "_" + capitulo + "_" + i;
+      saida.push(i + ". " + util.get_texto_chave(chave));
+   }
+   return saida;
+}
+
 bot.start((ctx)=>comandos(ctx, 'Bem-vindo ao Bíblia Rápida!'))
 bot.hears('Ajuda', (ctx)=>comandos(ctx, 'Os comandos são:'))
+bot.hears('ajuda', (ctx)=>comandos(ctx, 'Os comandos são:'))
 bot.hears('Me ajude', (ctx)=>comandos(ctx, 'Os comandos são:'))
+bot.hears('me ajude', (ctx)=>comandos(ctx, 'Os comandos são:'))
+
+bot.command('/zerar', (ctx) => zerar(ctx));
+bot.command('/ajuda', (ctx)=>comandos(ctx, 'Os comandos são:'));
+
 
 bot.action("oplerverso", (ctx)=>{
-   ctx.reply("Escolha o Livro:", listarLivros())
+   ctx.session = {step: 'selectporverso'};
+   ctx.reply("Escolha o Livro:", listarBotoesLivros())
+})
+
+bot.action("oplercapitulo", (ctx)=>{
+   ctx.session = {step: 'selectporcapitulo'};
+   ctx.reply("Escolha o Livro:", listarBotoesLivros())
 })
 
 for (let i=0; i < util.get_livros().length; i++)
 {
    bot.action(util.get_ref(i), (ctx) => {
       ctx.reply(`O livro selecionado foi ${util.get_livro(i)}`);
-      ctx.session = {step: 'selectcaps'};
       ctx.session.livro=util.get_ref(i);
       ctx.session.indice=i;
       ctx.reply("Digite o capitulo que deseja ler: ");      
    })
 }
 
-bot.on(message("text"), (ctx)=>{
+bot.action("opirreferencia", (ctx)=>{
+   ctx.session = {step: 'selectporreferencia'};
+   ctx.reply("Digite a referência do livro, verso e capitulo no formato XXX_NN_NN:")
+})
+
+
+bot.on(message("text"), async (ctx)=>{
    const step = ctx.session?.step;
-   if (step === 'selectcaps') {
+   if (step === 'selectporverso') {
       const livro = ctx.session.indice;
 
       const entrada = parseInt(ctx.message.text);
@@ -73,20 +105,36 @@ bot.on(message("text"), (ctx)=>{
          return ctx.reply("Abortando. Você digitou um versiculo invalido.");
       }
       const chave = livro + "_" + capitulo + "_" + versiculo;
-      console.log("1");
       const nomelivro = util.get_livro(indice);
       ctx.session.chave = chave;
-      console.log("2");
       const valor = nomelivro+ " " + capitulo +":" + versiculo;
-      console.log("3");
 
       ctx.reply(valor);
       const texto = util.get_texto_chave(chave);
       ctx.reply(`${texto}`);
       ctx.session = null;
-
+   }
+   if (step === 'selectporcapitulo') {
+      const capitulo = parseInt( ctx.message.text );
+      const { indice } = ctx.session;
+      const ref = util.get_ref(indice);
+      let saida = await get_texto_capitulo(indice, capitulo, ref);
+      
+      for (const msg of saida) {
+          await ctx.reply(`${msg}`);
+      }
+   }
+   if (step === 'selectporreferencia') {
+      const chave = ctx.message.text;
+      const referencia_biblica = util.montar_referencia_biblia(chave);
+      ctx.reply(referencia_biblica);
+      const texto = util.get_texto_chave(chave);
+      ctx.reply(`${texto}`);
+      ctx.session = null;
    }
 
 });
 
 bot.launch();
+
+
