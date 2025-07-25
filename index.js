@@ -2,6 +2,9 @@ const { message } = require("telegraf/filters");
 const util = require("./util");
 const { Telegraf, Markup, session } = require("telegraf")
 
+//@biblia_simples_rapida_bot
+//biblia pesquisa
+
 require('dotenv').config();
 
 const bot = new Telegraf(process.env.BOT_TOKEN)
