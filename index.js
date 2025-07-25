@@ -2,6 +2,7 @@ const { message } = require("telegraf/filters");
 const util = require("./util");
 const { Telegraf, Markup, session } = require("telegraf")
 
+
 //@biblia_simples_rapida_bot
 //biblia pesquisa
 
@@ -28,14 +29,28 @@ function listarBotoesLivros() {
    2. ler verso      OK
    3. ler referencia OK
    4. mostrar refs   OK
-   5. pesquisar palavra
-   6. pesquisar dicionario 
-   7. catalogo             
+   5. pesquisar palavra - usar blvetor
+        - varrer vetor buscando se o texto bate
+          1 - anotar a referencia no vetor
+          2 - fazer contagem do total de ocorrencias, total de ocorrencias por testamento
+          3 - apresentar o resultado por livro, mostrando o total de ocorrencias por livro [botao]
+          4 - ao clicar no livro apresentar todas as ocorrencias apenas daquele livro, colocar o step no passo 3
+          5 - ao fim do passo 6 deve ter um botão de sair 
+              - chama o menu de comandos no fim : "O que vc gostaria de fazer"
+          
+   6. pesquisar dicionario - usar base 1 a 5
+        - exibir o resultado da palavra de todas as bases
+        - chama o menu de comandos no fim : "O que vc gostaria de fazer"
+   7. catalogo 
+        - fazer botoes de A a Z
+        - abrir botoes com o nome da palavra na letra clicanda no passo anterior
+        - buscar a palavra clicada nas bases        
+        - chama o menu de comandos no fim : "O que vc gostaria de fazer"    
  */
 
-function comandos(ctx, mensagem) { 
+async function comandos(ctx, mensagem) { 
    ctx.session = null;
-   ctx.reply(mensagem, Markup.inlineKeyboard([
+   await ctx.reply(mensagem, Markup.inlineKeyboard([
       [Markup.button.callback('Ler um capítulo', 'oplercapitulo')],
       [Markup.button.callback('Ler um verso','oplerverso')],
       [Markup.button.callback('Ler um verso por referencia','opirreferencia')],
@@ -77,7 +92,9 @@ async function apresentar_texto_ref_parcial(ctx, chave) {
    }
    for (const msg of saida) {
       await ctx.reply(`${msg}`);
-  }
+   }
+
+  await comandos(ctx, "O que vc gostaria de fazer?");
 
 }
 
@@ -86,6 +103,7 @@ async function apresentar_texto_ref_cap_verso(ctx, chave) {
    await ctx.reply(referencia_biblica);
    const texto = util.get_texto_chave(chave);
    await ctx.reply(`${texto}`);
+   await comandos(ctx, "O que vc gostaria de fazer?");
 }
 
 async function apresentar_texto_ref_cap(ctx, chave) {
@@ -101,6 +119,8 @@ async function apresentar_texto_ref_cap(ctx, chave) {
    for (const msg of saida) {
        await ctx.reply(`${msg}`);
    }
+
+   await comandos(ctx, "O que vc gostaria de fazer?");
 }
 
 bot.start((ctx)=>comandos(ctx, 'Bem-vindo ao Bíblia Rápida!'))
@@ -114,6 +134,9 @@ bot.hears('zerar', (ctx)=>zerar(ctx))
 bot.command('/zerar', (ctx) => zerar(ctx));
 bot.command('/ajuda', (ctx)=>comandos(ctx, 'Os comandos são:'));
 
+bot.action("oppesquisar", (ctx) => ctx.reply("EM DESENVOLVIMENTO"));
+bot.action("opdicionario", (ctx) => ctx.reply("EM DESENVOLVIMENTO"));
+bot.action("opcatalogo", (ctx) => ctx.reply("EM DESENVOLVIMENTO"));
 
 bot.action("opreferencias", async (ctx)=>{
 
@@ -179,6 +202,9 @@ bot.on(message("text"), async (ctx) => {
       await ctx.reply(valor);
       const texto = util.get_texto_chave(chave);
       await ctx.reply(`${texto}`);
+
+      await comandos(ctx, "O que vc gostaria de fazer?");
+      
       ctx.session = null;
    }
    if (step === 'selectporcapitulo') {
@@ -190,6 +216,8 @@ bot.on(message("text"), async (ctx) => {
       for (const msg of saida) {
           await ctx.reply(`${msg}`);
       }
+
+      await comandos(ctx, "O que vc gostaria de fazer?");
 
       ctx.session = null;
    }
@@ -207,6 +235,7 @@ bot.on(message("text"), async (ctx) => {
       }
 
       ctx.session = null;
+      
    }
 
 });

@@ -89,5 +89,13 @@ exports.get_texto_chave = (chave) => {
         return biblia.get_texto(chave);
 }
 
+//TODO como pegar as keys nesse json blv
+exports.get_all_keys_biblia = () => {
+    const mapa = biblia.get_mapa();
+    let saida = [];
+
+    return saida;
+}
+
 
 
