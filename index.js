@@ -136,11 +136,11 @@ bot.action("oplercapitulo", (ctx)=>{
 
 for (let i=0; i < util.get_livros().length; i++)
 {
-   bot.action(util.get_ref(i), (ctx) => {
-      ctx.reply(`O livro selecionado foi ${util.get_livro(i)}`);
+   bot.action(util.get_ref(i), async (ctx) => {
+      await ctx.reply(`O livro selecionado foi ${util.get_livro(i)}`);
       ctx.session.livro=util.get_ref(i);
       ctx.session.indice=i;
-      ctx.reply("Digite o capitulo que deseja ler: ");      
+      await ctx.reply("Digite o capitulo que deseja ler: ");      
    })
 }
 
@@ -150,7 +150,7 @@ bot.action("opirreferencia", (ctx)=>{
 })
 
 
-bot.on(message("text"), async (ctx)=>{
+bot.on(message("text"), async (ctx) => {
    const step = ctx.session?.step;
    if (step === 'selectporverso') {
       const livro = ctx.session.indice;
@@ -176,9 +176,9 @@ bot.on(message("text"), async (ctx)=>{
       ctx.session.chave = chave;
       const valor = nomelivro+ " " + capitulo +":" + versiculo;
 
-      ctx.reply(valor);
+      await ctx.reply(valor);
       const texto = util.get_texto_chave(chave);
-      ctx.reply(`${texto}`);
+      await ctx.reply(`${texto}`);
       ctx.session = null;
    }
    if (step === 'selectporcapitulo') {
