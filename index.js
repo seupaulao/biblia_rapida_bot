@@ -19,6 +19,17 @@ function listarBotoesLivros() {
    return Markup.inlineKeyboard(vetor);
 }
 
+/*
+ * Funcoes
+   1. ler capitulo   OK  
+   2. ler verso      OK
+   3. ler referencia OK
+   4. mostrar refs   OK
+   5. pesquisar palavra
+   6. pesquisar dicionario 
+   7. catalogo             
+ */
+
 function comandos(ctx, mensagem) { 
    ctx.session = null;
    ctx.reply(mensagem, Markup.inlineKeyboard([
@@ -47,6 +58,48 @@ function get_texto_capitulo(indice, capitulo, ref) {
    return saida;
 }
 
+async function apresentar_texto_ref_parcial(ctx, chave) {
+   const v = chave.split('_');
+   const ref = v[0];
+   const capitulo = parseInt( v[1] );
+   const vv = v[2].split('-');
+   const parte_i = parseInt( vv[0] );
+   const parte_f = parseInt( vv[1] );
+   const referencia_biblica = util.montar_referencia_biblia(chave);
+   await ctx.reply(referencia_biblica);
+   let saida = [];
+   for (let i = parte_i; i <= parte_f; i++) {
+      const chave = ref + "_" + capitulo + "_" + i;
+      saida.push(i + ". " + util.get_texto_chave(chave));
+   }
+   for (const msg of saida) {
+      await ctx.reply(`${msg}`);
+  }
+
+}
+
+async function apresentar_texto_ref_cap_verso(ctx, chave) {
+   const referencia_biblica = util.montar_referencia_biblia(chave);
+   await ctx.reply(referencia_biblica);
+   const texto = util.get_texto_chave(chave);
+   await ctx.reply(`${texto}`);
+}
+
+async function apresentar_texto_ref_cap(ctx, chave) {
+   const v = chave.split('_');
+   const ref = v[0];
+   const indice = util.get_refs().indexOf(ref);
+   const capitulo = parseInt(v[1]);
+   let saida = get_texto_capitulo(indice, capitulo, ref);
+
+   const referencia_biblica = util.montar_referencia_biblia(chave);
+   await ctx.reply(referencia_biblica);
+      
+   for (const msg of saida) {
+       await ctx.reply(`${msg}`);
+   }
+}
+
 bot.start((ctx)=>comandos(ctx, 'Bem-vindo ao Bíblia Rápida!'))
 bot.hears('Ajuda', (ctx)=>comandos(ctx, 'Os comandos são:'))
 bot.hears('ajuda', (ctx)=>comandos(ctx, 'Os comandos são:'))
@@ -58,6 +111,15 @@ bot.hears('zerar', (ctx)=>zerar(ctx))
 bot.command('/zerar', (ctx) => zerar(ctx));
 bot.command('/ajuda', (ctx)=>comandos(ctx, 'Os comandos são:'));
 
+
+bot.action("opreferencias", async (ctx)=>{
+
+   for (let i = 0; i < util.get_livros().length; i++) {
+      const nome = util.get_livro(i);
+      const sigla = util.get_ref(i);
+      await ctx.reply(sigla + " - " + nome);
+   }
+})
 
 bot.action("oplerverso", (ctx)=>{
    ctx.session = {step: 'selectporverso'};
@@ -130,15 +192,24 @@ bot.on(message("text"), async (ctx)=>{
    }
    if (step === 'selectporreferencia') {
       const chave = ctx.message.text;
-      const referencia_biblica = util.montar_referencia_biblia(chave);
-      ctx.reply(referencia_biblica);
-      const texto = util.get_texto_chave(chave);
-      ctx.reply(`${texto}`);
+
+      if (chave.indexOf('-') >= 0) {
+         apresentar_texto_ref_parcial(ctx, chave);
+      } else {
+         if (chave.split('_').length > 2) {
+            apresentar_texto_ref_cap_verso(ctx, chave);
+         } else {
+            apresentar_texto_ref_cap(ctx, chave);
+         } 
+      }
+
       ctx.session = null;
    }
 
 });
 
 bot.launch();
+
+
 
 

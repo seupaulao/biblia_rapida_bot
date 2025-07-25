@@ -16,12 +16,21 @@ exports.get_refs = () => {
 
 exports.montar_referencia_biblia = (chave) => {
     let vetor = chave.split('_');
-    const livro = vetor[0];
-    const capitulo = vetor[1];
-    const versiculo = vetor[2];
-    const indice = this.get_refs().indexOf(livro);
-    const nomelivro = this.get_livro(indice);
-    const valor = nomelivro+ " " + capitulo +":" + versiculo;
+    let valor = '';
+    if (vetor.length > 2) {
+        const livro = vetor[0];
+        const capitulo = vetor[1];
+        const versiculo = vetor[2];
+        const indice = this.get_refs().indexOf(livro);
+        const nomelivro = this.get_livro(indice);
+        valor = nomelivro+ " " + capitulo +":" + versiculo;
+    } else {
+        const livro = vetor[0];
+        const capitulo = vetor[1];
+        const indice = this.get_refs().indexOf(livro);
+        const nomelivro = this.get_livro(indice);
+        valor = nomelivro+ " " + capitulo;
+    }
     return valor;
 }
 
@@ -79,4 +88,6 @@ exports.get_qtd_versos = (posicaoLivro, capitulo) => {
 exports.get_texto_chave = (chave) => {
         return biblia.get_texto(chave);
 }
+
+
 
